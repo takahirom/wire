@@ -1,26 +1,72 @@
-apply plugin: 'java'
-apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'org.jetbrains.kotlin.multiplatform'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+kotlin {
+  jvm() {
+    withJava()
+  }
+  js() {
+    configure([compilations.main, compilations.test]) {
+      tasks.getByName(compileKotlinTaskName).kotlinOptions {
+        moduleKind = 'umd'
+        sourceMap = true
+        metaInfo = true
+      }
+    }
+  }
+  iosX64()
+  iosArm64()
+  // Required to generate tests tasks: https://youtrack.jetbrains.com/issue/KT-26547
+  linuxX64()
+  macosX64()
+  mingwX64('winX64')
+  sourceSets {
+    commonTest {
+      dependencies {
+        implementation project(':wire-runtime')
+        implementation deps.kotlin.stdlib.common
+        implementation deps.kotlin.test.common
+        implementation deps.kotlin.test.annotations
+      }
+    }
+    jvmTest {
+      dependencies {
+        implementation project(':wire-grpc-client')
+        implementation project(':wire-test-utils')
+        implementation deps.kotlin.stdlib.jdk6
+        implementation deps.assertj
+        implementation deps.kotlin.test.junit
+        implementation deps.jimfs
+      }
+    }
+    jsTest {
+      dependencies {
+        implementation deps.kotlin.stdlib.js
+        implementation deps.kotlin.test.js
+      }
+    }
+    nativeMain {
+      dependsOn commonMain
+    }
+    nativeTest {
+      dependsOn commonTest
+    }
 
-sourceSets {
-  test.java.srcDirs += 'src/test/proto-java'
-  test.kotlin.srcDirs += 'src/test/proto-kotlin'
-}
-
-jar {
-  manifest {
-    attributes('Automatic-Module-Name': 'wire-tests')
+    configure([iosX64Main, iosArm64Main, linuxX64Main, macosX64Main, winX64Main]) {
+      dependsOn nativeMain
+    }
+    configure([iosX64Test, iosArm64Test, linuxX64Test, macosX64Test, winX64Test]) {
+      dependsOn nativeTest
+    }
   }
 }
 
-dependencies {
-  testImplementation project(':wire-grpc-client')
-  testImplementation project(':wire-runtime')
-  testImplementation project(':wire-test-utils')
-  testImplementation deps.kotlin.stdlib.jdk6
-  testImplementation deps.junit
-  testImplementation deps.assertj
-  testImplementation deps.jimfs
+// TODO(egorand): Remove when https://github.com/srs/gradle-node-plugin/issues/301 is fixed
+repositories.whenObjectAdded {
+  if (it instanceof IvyArtifactRepository) {
+    metadataSources {
+      artifact()
+    }
+  }
 }
+
+apply from: 'jvm.gradle'
