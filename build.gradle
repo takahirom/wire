@@ -24,7 +24,7 @@ buildscript {
       'mavenAnnotations': '3.5',
       'mavenPluginBuilder': '1.2.4',
       'mavenPublish': '0.8.0',
-      'releasedWire': '3.0.0-alpha01'
+      'releasedWire': '3.0.0-rc02'
   ]
 
   ext.deps = [
