@@ -286,6 +286,7 @@ class KotlinGenerator private constructor(
         } else {
           superclass.parameterizedBy(className, NOTHING)
         })
+        .addAnnotation(ClassName("kotlinx.serialization", "Serializable"))
         .addSuperclassConstructorParameter(adapterName)
         .addSuperclassConstructorParameter(unknownFields)
         .addFunction(generateNewBuilderMethod(type, builderClassName))

@@ -43,6 +43,7 @@ class KotlinGeneratorTest {
         |	repeated PhoneNumber phone = 4;
         |}""".trimMargin())
     val code = repoBuilder.generateKotlin("Person").replace("\n", "")
+    assertTrue(code.contains("@Serializable"))
     assertTrue(code.contains("class Person"))
     assertTrue(code.contains("object : ProtoAdapter<PhoneNumber>("))
     assertTrue(code.contains("FieldEncoding.LENGTH_DELIMITED"))
